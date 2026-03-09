@@ -17,7 +17,7 @@ Since this modifies system files, it should be run with `sudo`.
 
 ```bash
 git clone https://github.com/hnpf/UbuntYou
-cd ubuntyou
+cd UbuntYou
 
 python3 -m ubuntyou.cli list
 
