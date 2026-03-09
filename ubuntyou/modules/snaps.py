@@ -18,8 +18,7 @@ class NoSnaps(Module):
             # We need to get the list of snaps first
             result = subprocess.run("snap list", shell=True, capture_output=True, text=True)
             if result.returncode == 0:
-                snaps = [line.split()[0] for line in result.stdout.strip().split('
-')[1:]]
+                snaps = [line.split()[0] for line in result.stdout.strip().split('')[1:]]
                 for snap in snaps:
                     subprocess.run(f"sudo snap remove --purge {snap}", shell=True)
             # 2. stop and remove snapd
