@@ -15,15 +15,27 @@ class NoSnaps(Module):
     def is_applied(self) -> bool:
         return not os.path.exists("/usr/bin/snap") and os.path.exists("/etc/apt/preferences.d/nosnap.pref")
 
+    def _get_snaps(self) -> list[str]:
+        result = subprocess.run("snap list", shell=True, capture_output=True, text=True)
+        if result.returncode != 0:
+            return []
+        return [line.split()[0] for line in result.stdout.strip().split('\n')[1:] if line.strip()]
+
     def apply(self) -> bool:
         try:
-            result = subprocess.run("snap list", shell=True, capture_output=True, text=True)
-            if result.returncode == 0:
-                snaps = [line.split()[0] for line in result.stdout.strip().split('\n')[1:] if line.strip()]
-                for snap in snaps:
-                    subprocess.run(f"sudo snap remove --purge {snap}", shell=True, check=True)
+            # stop and disable all snap services first
+            subprocess.run("sudo systemctl disable --now snapd.service snapd.socket snapd.seeded.service", shell=True)
+            subprocess.run("sudo systemctl mask snapd.service snapd.socket snapd.seeded.service", shell=True)
 
-            subprocess.run("sudo systemctl stop snapd", shell=True, check=True)
+            # loop removal until nothing is left (handles dependency ordering)
+            max_passes = 10
+            for _ in range(max_passes):
+                snaps = self._get_snaps()
+                if not snaps:
+                    break
+                for snap in snaps:
+                    subprocess.run(f"sudo snap remove --purge {snap}", shell=True)
+
             subprocess.run("sudo apt purge -y snapd", shell=True, check=True)
             subprocess.run(
                 "sudo rm -rf ~/snap /var/snap /var/lib/snapd /var/cache/snapd /usr/lib/snapd",
@@ -44,6 +56,7 @@ class NoSnaps(Module):
     def revert(self) -> bool:
         try:
             subprocess.run("sudo rm /etc/apt/preferences.d/nosnap.pref", shell=True, check=True)
+            subprocess.run("sudo systemctl unmask snapd.service snapd.socket snapd.seeded.service", shell=True)
             subprocess.run("sudo apt update && sudo apt install -y snapd", shell=True, check=True)
             return True
         except subprocess.CalledProcessError:
