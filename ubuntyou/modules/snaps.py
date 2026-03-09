@@ -23,9 +23,11 @@ class NoSnaps(Module):
 
     def apply(self) -> bool:
         try:
-            # stop and disable all snap services first
-            subprocess.run("sudo systemctl disable --now snapd.service snapd.socket snapd.seeded.service", shell=True)
-            subprocess.run("sudo systemctl mask snapd.service snapd.socket snapd.seeded.service", shell=True)
+            # stop, disable, and mask individually to avoid hangs on seeded.service
+            for svc in ["snapd.seeded.service", "snapd.socket", "snapd.service"]:
+                subprocess.run(f"sudo systemctl stop {svc}", shell=True, timeout=10)
+                subprocess.run(f"sudo systemctl disable {svc}", shell=True, timeout=10)
+                subprocess.run(f"sudo systemctl mask {svc}", shell=True, timeout=10)
 
             # loop removal until nothing is left (handles dependency ordering)
             max_passes = 10
