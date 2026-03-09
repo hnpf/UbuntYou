@@ -62,7 +62,7 @@ class NoSnaps(Module):
             with open("/tmp/nosnap.pref", "w") as f:
                 f.write(pin_content)
             subprocess.run("sudo mv /tmp/nosnap.pref /etc/apt/preferences.d/nosnap.pref", shell=True, check=True, timeout=5)
-            
+            print("REBOOT IS RECOMMENDED")
             return True
         except subprocess.CalledProcessError:
             return False
