@@ -1,4 +1,3 @@
-# ubuntyou 
 
 ## Quick Install
 
