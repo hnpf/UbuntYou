@@ -1,7 +1,5 @@
 # ubuntyou 
 
-A modular debullshittifier for Ubuntu that maintains the default aesthetic while removing telemetry, ads, and snaps. It's safe, revertible, and designed to make Ubuntu feel like your OS again.
-
 ## Quick Install
 
 To get started, clone the repo and run the installation script. It will make sure Python 3, pip, and all necessary dependencies are installed.
